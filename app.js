@@ -64,7 +64,7 @@ io.configure(function (){
 io.sockets.on('connection', function (socket) {
   
   socket.on('sendfolderaction', function (feeditem) {
-      var msg = socket.username + ':'+ feeditem;
+      var msg = { user: socket.username, feeditem: feeditem };
       feed.push(msg);
       io.sockets.emit('updatefeed', msg);
   });
@@ -82,7 +82,7 @@ io.sockets.on('connection', function (socket) {
       feed.splice(1,feed.length-10);
     }
     
-    feed.push(socket.username+': connected!');          
+    feed.push({user:socket.username, feeditem:'connected!'});          
     socket.emit('initialfeed', feed);
 
     io.sockets.emit('updatedevices', devices);
@@ -91,7 +91,7 @@ io.sockets.on('connection', function (socket) {
   socket.on('disconnect', function(){
     // remove the username from global usernames list
     delete devices[socket.username];
-    var msg = socket.username + ': disconnected!';
+    var msg = {user:socket.username, feeditem:'disconnected!'};
     feed.push(msg);
     io.sockets.emit('updatefeed', msg);      
     io.sockets.emit('updatedevices', devices);

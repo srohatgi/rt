@@ -2,9 +2,8 @@ div(data-role='page')
   div(data-role='header', data-position='fixed')
     b Activity Feed
   div(data-role='content')
-    div#feedlist
-    b CONNECTED DEVICES
-    div#devices
+    ul#feedlist(data-role='listview',data-theme='g')
+    ul#devices(data-role='listview',data-theme='b',data-inset="true")
   div#folder_action(data-role='footer', data-position='fixed', data-type='horizontal')
     input#data
     input#datasend(type="button",value="send")
@@ -23,21 +22,24 @@ script(type='text/javascript')
   socket.on('initialfeed', function (feedlist) {
     console.log('feedlist:'+feedlist);
     for (var i=0;i<feedlist.length;i++) {
-      $('#feedlist').append(feedlist[i]+'<br/>');
+      $('#feedlist').append('<li><a href="#"><h3>'+feedlist[i].user+'</h3><p>'+feedlist[i].feeditem+'</p></a></li>');
     }
+    $('#feedlist').listview('refresh');
   });
 
   // listener, updates the feed list
   socket.on('updatefeed', function (feed) {
-    $('#feedlist').append(feed + '<br/>');
+    $('#feedlist').append('<li><a href="#"><h3>'+feed.user+'</h3><p>'+feed.feeditem+'</p></a></li>');
+    $('#feedlist').listview('refresh');
   });
 
   // listener, updates the device list
-  socket.on('updatedevices', function(data) {
+  socket.on('updatedevices', function(devicelist) {
     $('#devices').empty();
-    $.each(data, function(key, value) {
-      $('#devices').append('<div>' + key + '</div>');
+    $.each(devicelist, function(key, value) {
+      $('#devices').append('<li><a href="#">'+key+'</a></li>');
     });
+    $('#devices').listview('refresh');
   });
 
   // on load of page
