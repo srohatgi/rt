@@ -1,17 +1,52 @@
 div(data-role='page')
   div(data-role='header', data-position='fixed')
-    b Activity Feed
-  div(data-role='content')
+    h3 Collaboration Hub
+    div(data-role="controlgroup",data-type="horizontal",style="text-align:center;")
+      a#show_content(href="#",data-role="button",data-icon="arrow-l",data-iconpos="notext",data-theme="b",data-inline="true",title="Content")
+      a#show_feeds(href="#",data-role="button",data-icon="info",data-iconpos="notext",data-theme="b",data-inline="true",title="Feeds")
+      a#show_users(href="#",data-role="button",data-icon="gear",data-iconpos="notext",data-theme="b",data-inline="true",title="Users")
+    div.action#feeds_act(style="text-align:center;")
+      h3 Activity Feeds
+      div(data-type="horizontal",data-theme="b",data-inline="true")
+        input#data
+        input#datasend(type="button",value="update")
+    div.action#content_act(style="text-align:center;")
+      h3 Shared Folders/ Projects
+    div.action#users_act(style="text-align:center;")
+      h3 Collaborators Online
+  div.main#content
+    ul#filelist(data-role='listview',data-theme='g')
+  div.main#feeds
     ul#feedlist(data-role='listview',data-theme='g')
+  div.main#users
     ul#devices(data-role='listview',data-theme='b',data-inset="true")
-  div#folder_action(data-role='footer', data-position='fixed', data-type='horizontal')
-    input#data
-    input#datasend(type="button",value="send")
 
 script(type='text/javascript')
   var user = prompt("Please enter user name:");
   var socket = io.connect('/?user='+user);
 
+  var chg_main_area = function(what) {
+    var area = '#'+what;
+    var action = '#'+what+'_act';
+    $('.main').hide();
+    $('.action').hide();
+    $(area).show();
+    $(action).show();
+  };
+  
+  var build_link = function(header,item,item_val) {
+    if ( header ) return '<li><a href="#"><h3>'+header+'</h3><p>'+item+'</p></a></li>';
+    else {
+      var img_name = '/images/pics/'+item.substring(item.lastIndexOf('/')+1);
+      var val = item;
+      if ( item_val ) val = item_val; 
+      var tag =  
+        '<li><a href="#"><img src="'+img_name+'" class="ui-li-thumb"/><p>'+val+'</p></a></li>';
+      //console.log("adding device tag:"+tag);
+      return tag;
+    }
+  };
+  
   // on connection to server, ask for user's name with an anonymous callback
   socket.on('connect', function(){
     // call the server-side function 'adddevice' and send one parameter (value of prompt)
@@ -22,14 +57,23 @@ script(type='text/javascript')
   socket.on('initialfeed', function (feedlist) {
     console.log('feedlist:'+feedlist);
     for (var i=0;i<feedlist.length;i++) {
-      $('#feedlist').append('<li><a href="#"><h3>'+feedlist[i].user+'</h3><p>'+feedlist[i].feeditem+'</p></a></li>');
+      $('#feedlist').prepend(build_link(feedlist[i].user,feedlist[i].feeditem));
     }
     $('#feedlist').listview('refresh');
   });
 
+  // listener, fills in initial feed
+  socket.on('initialfilelist', function (filelist) {
+    //console.log('feedlist:'+feedlist);
+    for (var i=0;i<filelist.length;i++) {
+      $('#filelist').append(build_link(null,filelist[i]));
+    }
+    $('#filelist').listview('refresh');
+  });
+  
   // listener, updates the feed list
   socket.on('updatefeed', function (feed) {
-    $('#feedlist').append('<li><a href="#"><h3>'+feed.user+'</h3><p>'+feed.feeditem+'</p></a></li>');
+    $('#feedlist').prepend(build_link(feed.user,feed.feeditem));
     $('#feedlist').listview('refresh');
   });
 
@@ -37,13 +81,25 @@ script(type='text/javascript')
   socket.on('updatedevices', function(devicelist) {
     $('#devices').empty();
     $.each(devicelist, function(key, value) {
-      $('#devices').append('<li><a href="#">'+key+'</a></li>');
+      console.log("adding device:"+value)
+      $('#devices').prepend(build_link(null,value,key));
     });
     $('#devices').listview('refresh');
   });
 
   // on load of page
   $(function(){
+    // turn on touch overflow
+    $(document).bind("mobileinit", function(){
+      $.mobile.touchOverflowEnabled = true;
+    });
+  
+    $('#show_feeds').click(function() { chg_main_area('feeds'); })
+    $('#show_content').click(function() { chg_main_area('content'); })
+    $('#show_users').click(function() { chg_main_area('users'); })
+    
+    $('#show_feeds').click();
+    
     // when the client clicks SEND for simulated folder action
     $('#datasend').click( function() {
       var message = $('#data').val();

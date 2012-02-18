@@ -38,11 +38,8 @@ io.configure(function (){
   io.set('authorization', function (handshakeData, callback) {
 
     console.log("connection User-Agent:"+handshakeData.headers['user-agent']);
-    
     handshakeData['parsed_user_agent'] = ua.parse(handshakeData.headers['user-agent']);
-    
     console.log('conn query:'+JSON.stringify(handshakeData.query));
-    
     callback(null,true);
     /*
     // findDatabyip is an async example function
@@ -61,6 +58,31 @@ io.configure(function (){
   });
 });
 
+var fs = require('fs');
+var walk = function(dir, done) {
+  var results = [];
+  fs.readdir(dir, function(err, list) {
+    if (err) return done(err);
+    var pending = list.length;
+    if (!pending) return done(null, results);
+    list.forEach(function(file) {
+      file = dir + '/' + file;
+      fs.stat(file, function(err, stat) {
+        if (stat && stat.isDirectory()) {          
+          // recurse
+          walk(file, function(err, res) {
+            results = results.concat(res);
+            if (!--pending) done(null, results);
+          });
+        } else {
+          results.push(file);
+          if (!--pending) done(null, results);
+        }
+      });
+    });
+  });
+};
+
 io.sockets.on('connection', function (socket) {
   
   socket.on('sendfolderaction', function (feeditem) {
@@ -74,7 +96,7 @@ io.sockets.on('connection', function (socket) {
     token = token+"'s "+a.platform.name+' '+a.browser.name+' '+a.engine.name;
     
     socket.username = token;
-    devices[token] = token;
+    devices[token] = '/'+a.platform.name+'_'+a.browser.name+'_'+a.engine.name+'.png';
       
     // tell the client about stuff they might have missed
     if ( feed.length > 10 ) {
@@ -86,6 +108,12 @@ io.sockets.on('connection', function (socket) {
     socket.emit('initialfeed', feed);
 
     io.sockets.emit('updatedevices', devices);
+    
+    walk(process.env.HOME+'/YouSendIt/pics/diwali 2011', function(err, filelist) {
+      if (err) throw err;
+      //console.log(filelist);
+      socket.emit('initialfilelist', filelist);
+    });
   });
     
   socket.on('disconnect', function(){
