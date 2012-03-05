@@ -53,10 +53,18 @@ function parse_port_host(name) {
   };
 }
 
+var pair = parse_port_host(process.env.PUBLISH_DB);
+
 io.sockets.on('connection', function (socket) {
-  var pair = parse_port_host(process.env.PUBLISH_DB);
   var sub = redis.createClient(pair.port,pair.host);
-  var key = 'feed:'+socket.handshake['user'];
+  // generate random number for being a lucky client!!
+  var r = Math.floor(Math.random()*101);
+  if ( r <= process.env.PERCENT_COLLAB ) { 
+    r = process.env.PERCENT_COLLAB;
+  } else { 
+    r = 100;
+  }
+  var key = 'feed:'+r;
   sub.subscribe(key, function(err, reply) {
     if ( err ) console.log('error: while trying to subscribe to:'+key);
     else {
