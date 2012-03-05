@@ -6,17 +6,16 @@ Following is the primary use case:
 
 1. user connects device to push cloud
 1. user receives number of unread feeds (and change id/ timestamp)
-1. user connects to pull api for getting the feeds
+1. user uses pull api for getting the unread feeds
 
 Architecture
 ------------
-There are three classes of servers: `Load`, `Push` & `Publish` servers.
+There are three classes of servers: `DeviceDB`, `Push` & `PublishDB` servers.
 
-1. Devices (users), authenticate to a central Load (Node.js/Redis server pair), and get an assigned to a Push (Node.js) server
-1. Device connects to assigned Push (Node.js) server, and every connection spawns a subscription to a Redis server
-1. Many Node.js servers connect to a single Redis server
-1. Publish server reads device connectivity from Load server and publishes user feed updates to appropriate Redis server
-
+1. Users authenticate their device to a `Push` server
+1. `Push` server spawns listener on PublishDB
+1. `Push` server updates device & self address info to `DeviceDB`
+1. `Publish` server looks up info in `DeviceDB` to publish unread feed item message
 
 
 

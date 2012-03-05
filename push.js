@@ -1,7 +1,8 @@
 var express = require('express')
   , routes = require('./routes')
   , ua = require('./useragent')
-  , redis = require('redis');
+  , redis = require('redis')
+  , device = require('./load.js').Device(process.env.PUSH_SERVER_ID,process.env.DEVICE_PORT,process.env.DEVICE_HOST);
   
 var app = module.exports = express.createServer();
 var io = require('socket.io').listen(app);
@@ -33,9 +34,13 @@ app.get('/', function(req, res) {
 
 io.configure(function () {
   io.set('authorization', function (data, callback) {
-    //console.log("connection User-Agent:"+data.headers['user-agent']);
-    data['user'] = data.query.user;
-    callback(null,true);
+    console.log("connection User-Agent:"+data.headers['user-agent']);
+    device.connect(function(did) {
+      if ( err ) { callback(err); return; }
+      data['user'] = data.query.user;
+      data['did'] = did;
+      callback(null,true);
+    });    
   });
 });
 
@@ -54,8 +59,9 @@ io.sockets.on('connection', function (socket) {
   });
   socket.on('disconnect', function(){
     sub.quit();
+    device.disconnect(socket.handshake['did']);
   });
 });
 
-app.listen(3000);
+app.listen(process.env.PUSH_PORT);
 console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
