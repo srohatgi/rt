@@ -10,10 +10,10 @@ Following is the primary *use case*:
 
 Architecture
 ------------
-There are three classes of servers: `Push` & `Publish` servers. There are two databases: `DeviceDB` & `PublishDB`. `DeviceDB` contains lookup information on connected devices. `PublishDB` publishes information to `Push` servers (which in turn send this info on to `Clients`)
+There are three classes of servers: `Push` & `Publish` servers. There are two data stores: `DeviceDB` & `PublishDB`. `DeviceDB` contains lookup information on connected devices. `PublishDB` publishes and subscribes information to/ from `Push` servers (which in turn send this info on to `Clients` using `socket.io`)
 
 1. Users authenticate their `Client` to a `Push` server
-1. `Push` server spawns listener on PublishDB
+1. `Push` server spawns listener on `PublishDB`
 1. `Push` server also updates `Client` info to `DeviceDB`
 1. `Publish` server looks up `Client` info in `DeviceDB` to publish unread feed items
 
@@ -24,3 +24,11 @@ Design
 1. `Client` is a multi threaded Java program
 1. `DeviceDB` & `PublishDB` are Redis database servers
 
+Status
+------
+
+* **Push server** is `Done`
+* **PublishDB** is `Done`
+* **DeviceDB** is `Done`
+* Client is `WIP`
+* Publish is `WIP`
