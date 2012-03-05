@@ -1,12 +1,12 @@
-Real Time
-=========
+Real Time Communication
+=======================
 This project serves as an experimental area for developing, testing real time communication.
 
 Following is the primary use case:
 
-1. user connects device to push cloud
-1. user receives number of unread feeds (and change id/ timestamp)
-1. user uses pull api for getting the unread feeds
+1. user `connects` device to push cloud
+1. user's device/ app is `pushed` number of unread feeds (and change id/ timestamp)
+1. user's app uses `rest api` for getting the unread feeds using the change id
 
 Architecture
 ------------

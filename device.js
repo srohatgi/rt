@@ -1,7 +1,8 @@
 var redis = require('redis');
 
-var Device = function(push_server_id,redis_port,redis_host) {
-  var store = redis.createClient(redis_port,redis_host);
+var Device = function(publish_db,device_db) {
+  // parse port and host of device db
+  var store = redis.createClient(device_db.substring(device_db.indexOf(':')+1),str.substring(0,str.indexOf(':')));
   var connected_devices = 0;
   return {
     connect: function(cb) {
@@ -15,7 +16,7 @@ var Device = function(push_server_id,redis_port,redis_host) {
           console.log("connected device# "+reply+" connected!");
           connected_devices = did = reply;
           var key = 'device:'+did;
-          store.set(key,push_server_id,redis.print);
+          store.set(key,publish_db,redis.print);
           cb(null,did);
         }
       });
@@ -37,7 +38,8 @@ var Device = function(push_server_id,redis_port,redis_host) {
 
 exports.Device = Device;
 
-var Dev = new Device(1,process.env.DEVICE_PORT,process.env.DEVICE_HOST);
+/*
+var Dev = Device(1,process.env.DEVICE_PORT,process.env.DEVICE_HOST);
 Dev.connect(function(err,did) { 
   if (err) return;
   Dev.connect(function(err,did1) { 
@@ -51,3 +53,4 @@ Dev.connect(function(err,did) {
     });
   });
 });
+*/
