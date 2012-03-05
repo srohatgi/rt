@@ -2,7 +2,7 @@ var express = require('express')
   , routes = require('./routes')
   , ua = require('./useragent')
   , redis = require('redis')
-  , device = require('./load.js').Device(process.env.PUSH_SERVER_ID,process.env.DEVICE_PORT,process.env.DEVICE_HOST);
+  , device = require('./device.js').Device(process.env.PUSH_SERVER_ID,process.env.DEVICE_PORT,process.env.DEVICE_HOST);
   
 var app = module.exports = express.createServer();
 var io = require('socket.io').listen(app);
