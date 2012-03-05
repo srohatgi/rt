@@ -2,7 +2,7 @@ var redis = require('redis');
 
 var Device = function(publish_db,device_db) {
   // parse port and host of device db
-  var store = redis.createClient(device_db.substring(device_db.indexOf(':')+1),str.substring(0,str.indexOf(':')));
+  var store = redis.createClient(device_db.substring(device_db.indexOf(':')+1),device_db.substring(0,device_db.indexOf(':')));
   var connected_devices = 0;
   return {
     connect: function(cb) {

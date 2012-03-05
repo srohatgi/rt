@@ -44,8 +44,18 @@ io.configure(function () {
   });
 });
 
+function parse_port_host(name) {
+  var port = name.substring(name.indexOf(':')+1);
+  var host = name.substring(0,name.indexOf(':'));
+  return {
+      port: port
+    , host: host
+  };
+}
+
 io.sockets.on('connection', function (socket) {
-  var sub = redis.createClient();
+  var pair = parse_port_host(process.env.PUBLISH_DB);
+  var sub = redis.createClient(pair.port,pair.host);
   var key = 'feed:'+socket.handshake['user'];
   sub.subscribe(key, function(err, reply) {
     if ( err ) console.log('error: while trying to subscribe to:'+key);
