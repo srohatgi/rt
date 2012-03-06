@@ -19,29 +19,20 @@ public class SocketIOLoadTester extends Thread implements SocketIOClientEventLis
   public static final int SECONDS_TO_TEST_EACH_LOAD_STATE = 10;
   public static final int SECONDS_BETWEEN_TESTS = 2;
   public static final int MESSAGES_RECEIVED_PER_SECOND_RAMP = 100;
-  
   public static final int POST_TEST_RECEPTION_TIMEOUT_WINDOW = 5000;
-  
-  protected int[] concurrencyLevels = {1, 10, 25, 50, 75, 100, 200, 300, 400, 500, 750, 1000, 1250, 1500, 2000};
   private static final int MAX_MESSAGES_PER_SECOND_SENT = 800;  
 
   //  public static final int[] concurrencyLevels = {10, 25, 50};
   
-  
   protected Set<SocketIOClient> clients = new HashSet<SocketIOClient>();
-  
+  protected int[] concurrencyLevels = {1, 10, 25, 50, 75, 100, 200, 300, 400, 500, 750, 1000, 1250, 1500, 2000};
   protected int concurrency;
-  
   protected int currentMessagesPerSecond = STARTING_MESSAGES_PER_SECOND_RATE;
-  
   protected boolean lostConnection = false;
-  
   protected Integer numConnectionsMade = 0;
-  
   protected List<Long> roundtripTimes;
-  
+
   private boolean postTestTimeout;
-  
   private boolean testRunning;
   
   protected SocketIOLoadTester(ArrayList<Integer> concurrencies) {
