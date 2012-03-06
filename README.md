@@ -30,8 +30,23 @@ Design
 Status
 ======
 
+Components
+----------
 * **Push server** is `Done`
 * **PublishDB** is `Done`
 * **DeviceDB** is `Done`
 * Client is `WIP`
 * **Publish** is `Done`
+
+Env Configuration
+-----------------
+* Load Balancer for PUSH servers
+* PUSH: Node.js/ Socket.IO servers machine
+* CLIENT: java client machine
+* PUBLISHER: Node.js machine
+* DATA STORE: redis machine
+
+Testing
+-------
+* Unit testing is `WIP`
+* Perf testing is yet to started 
