@@ -2,7 +2,7 @@ var express = require('express')
   , routes = require('./routes')
   , ua = require('./useragent')
   , redis = require('redis')
-  , device = require('./device.js').Device(process.env.PUBLISH_DB,process.env.DEVICE_DB);
+  , device = require('./device').Device(process.env.PUBLISH_DB,process.env.DEVICE_DB);
   
 var app = module.exports = express.createServer();
 var io = require('socket.io').listen(app);
@@ -33,6 +33,8 @@ app.get('/', function(req, res) {
 });
 
 io.configure(function () {
+  // for the discards issue
+  io.set('heartbeat timeout', 60);
   io.set('authorization', function (data, callback) {
     console.log("connection User-Agent:"+data.headers['user-agent']);
     device.connect(function(did) {
