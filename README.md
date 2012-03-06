@@ -34,4 +34,4 @@ Status
 * **PublishDB** is `Done`
 * **DeviceDB** is `Done`
 * Client is `WIP`
-* Publish is `WIP`
+* **Publish** is `Done`
