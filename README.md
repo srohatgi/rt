@@ -11,14 +11,17 @@ Following is the **primary use case**:
 ----
 Architecture
 ============
-There are three classes of servers: `Push` & `Publish` servers. There are two data stores: `DeviceDB` & `PublishDB`. `DeviceDB` contains lookup information on connected devices. `PublishDB` publishes and subscribes information to/ from `Push` servers (which in turn send this info on to `Clients` using `socket.io`)
-
-1. Users authenticate their `Client` to a `Push` server
-1. `Push` server spawns listener on `PublishDB`
-1. `Push` server also updates `Client` info to `DeviceDB`
-1. `Publish` server looks up `Client` info in `DeviceDB` to publish unread feed items
 
 <img src="https://github.com/srohatgi/rt/raw/master/push_eval_test.png" alt="Logical Architecture" width="242" height="400" />
+
+There are two publish-subscribe servers: `Push` & `Publish` servers. There are also two memory data stores: `DeviceDB` & `PublishDB`. `DeviceDB` holds current information on connected devices. `PublishDB` holds transient publishing information for `Push` server `Clients`.
+
+Mapping the use case to our architecture:
+
+1. Users authenticate their `Client` to a given `Push` server
+1. `Push` server spawns a subscription on `PublishDB` (using the user credentials)
+1. `Push` server also updates `Client` info to `DeviceDB`
+1. `Publish` server looks up `Client` info in `DeviceDB` to publish any unread feed items
 
 ----
 Design
