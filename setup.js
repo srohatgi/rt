@@ -16,7 +16,6 @@ var push_js = path.join(__dirname, 'push.js'),
 var forever_exe = path.join(__dirname, '/node_modules/forever/bin/forever')
 var publish_js = path.join(__dirname, 'publish.js');
 var publish_interval = process.env.PUBLISH_INTERVAL_SECS || '2';
-var client_class = path.join(__dirname, 'Client.class');
 
 // datastore - redis start
 spawn_datastore(publish_db,device_db,redis_conf_loc);
@@ -24,6 +23,8 @@ spawn_datastore(publish_db,device_db,redis_conf_loc);
 spawn_push(push_js,push_children,push_port_range,forever_exe,publish_db,device_db,percent_collab);
 // publish - node.js script
 trigger_publisher(publish_js,forever_exe,publish_db,publish_interval);
+// client - java program
+trigger_client();
 
 function spawn_datastore(publish_addr,device_addr,redis_conf_loc) {
   var port = publish_addr.substring(publish_addr.indexOf(':')+1);
@@ -49,11 +50,15 @@ function spawn_push(script,children,port_range,forever_exe,publish_addr,device_a
 }
 
 function trigger_publisher(script,forever_exe,publish_addr,interval) {
-  env_vars = 'PUBLISH_DB='+publish_addr+' PUBLISH_INTERVAL_SECS='+interval;
+  env_vars = 'PUBLISH_DB='+publish_addr+' PUBLISH_INTERVAL_SECS='+interval+' PERCENT_COLLAB='+percent_collab;
   cmd_line = env_vars+' '+forever_exe+' '+script;
   util.puts(cmd_line);
 }
 
 function trigger_client() {
-  
+  var ws_jar = path.join(__dirname, 'client/lib/WebSocket.jar');
+  var cm_jar = path.join(__dirname, 'client/lib/commons-math-2.2.jar');
+  var cp = path.join(__dirname, 'client/classes');
+  cmd_line = 'java -cp '+[ws_jar,cm_jar,cp].join(':')+' SocketIOLoadTester';
+  util.puts(cmd_line);
 }

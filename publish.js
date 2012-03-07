@@ -1,6 +1,6 @@
 var redis = require('redis');
 
-var Pubish = function(publish_db) {
+var Publish = function(publish_db) {
   var port = publish_db.substring(publish_db.indexOf(':')+1);
   var host = publish_db.substring(0,publish_db.indexOf(':'));
   var pub = redis.createClient(port,host);
@@ -8,6 +8,7 @@ var Pubish = function(publish_db) {
   return {
       publishFeed: function(channel,unread_items) {
       var key = 'feed:'+channel;
+      console.log("publishing "+unread_items+" to key:"+key);      
       pub.publish(key,unread_items);
     }
     , quit: function() {
