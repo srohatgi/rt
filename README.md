@@ -18,7 +18,7 @@ There are three classes of servers: `Push` & `Publish` servers. There are two da
 1. `Push` server also updates `Client` info to `DeviceDB`
 1. `Publish` server looks up `Client` info in `DeviceDB` to publish unread feed items
 
-![Logical Architecture](https://github.com/srohatgi/rt/raw/master/push_eval_test.png "Logical Architecture")
+<img src="https://github.com/srohatgi/rt/raw/master/push_eval_test.png" alt="Logical Architecture" width="242" height="400" />
 
 ----
 Design
