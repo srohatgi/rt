@@ -10,7 +10,8 @@ var push_js = path.join(__dirname, 'push.js'),
     percent_collab = process.env.PERCENT_COLLAB || '30',
     push_port_range = process.env.PORT_RANGE_PUSH || '3000',
     push_children = process.env.SPAWN_PUSH || '1',
-    redis_conf_loc = process.env.REDIS_CONF_FILE || '/Users/sumeet/Downloads/redis-2.4.8/redis.conf';
+    redis_conf_loc = process.env.REDIS_CONF_FILE || '/Users/sumeet/Downloads/redis-2.4.8/redis.conf',
+    push_cluster_uri = process.env.PUSH_CLUSTER_URI || 'localhost:3000';
 
 // client config
 var forever_exe = path.join(__dirname, '/node_modules/forever/bin/forever')
@@ -59,6 +60,6 @@ function trigger_client() {
   var ws_jar = path.join(__dirname, 'client/lib/WebSocket.jar');
   var cm_jar = path.join(__dirname, 'client/lib/commons-math-2.2.jar');
   var cp = path.join(__dirname, 'client/classes');
-  cmd_line = 'java -cp '+[ws_jar,cm_jar,cp].join(':')+' SocketIOLoadTester';
+  cmd_line = 'PUSH_CLUSTER_URI='+push_cluster_uri+' java -cp '+[ws_jar,cm_jar,cp].join(':')+' SocketIOLoadTester';
   util.puts(cmd_line);
 }

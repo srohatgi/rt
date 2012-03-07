@@ -118,7 +118,7 @@ public class SocketIOLoadTester extends Thread implements SocketIOClientEventLis
     this.clients.clear();
     
     for(int i=0; i<this.concurrency; i++) {
-      SocketIOClient client = new SocketIOClient(SocketIOClient.getNewSocketURI("localhost:3000"), this);
+      SocketIOClient client = new SocketIOClient(SocketIOClient.getNewSocketURI(System.getenv("PUSH_CLUSTER_URI")), this);
       this.clients.add(client);
       client.connect();
     }

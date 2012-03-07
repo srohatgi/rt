@@ -37,7 +37,7 @@ io.configure(function () {
   io.set('heartbeat timeout', 60);
   io.set('authorization', function (data, callback) {
     console.log("connection User-Agent:"+data.headers['user-agent']);
-    device.connect(function(did) {
+    device.connect(function(err,did) {
       if ( err ) { callback(err); return; }
       data['user'] = data.query.user;
       data['did'] = did;
