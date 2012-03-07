@@ -29,7 +29,7 @@ app.configure('production', function(){
 });
 
 app.get('/', function(req, res) {
-  res.render('index.jade', {locals: {title: 'Activity Feeds' }});
+  res.render('push.jade', {locals: {title: 'Activity Feeds' }});
 });
 
 io.configure(function () {
@@ -58,12 +58,13 @@ function parse_port_host(name) {
 var pair = parse_port_host(process.env.PUBLISH_DB);
 
 io.sockets.on('connection', function (socket) {
+  // register with PUBLISH DB
   var sub = redis.createClient(pair.port,pair.host);
-  // generate random number for being a lucky client!!
+  // generate random number...
   var r = Math.floor(Math.random()*101);
-  if ( r <= process.env.PERCENT_COLLAB ) { 
+  if ( r <= process.env.PERCENT_COLLAB || socket.handshake['user'] === 'lucky' ) { 
     r = process.env.PERCENT_COLLAB;
-  } else { 
+  } else {
     r = 100;
   }
   var key = 'feed:'+r;
@@ -75,7 +76,7 @@ io.sockets.on('connection', function (socket) {
   });
   sub.on('message', function(channel, message) {
     console.log(channel+':recieved:'+message);
-    socket.emit('unreadfeeditems',message);
+    socket.emit('newfeed',{ 'items':message, chg_id:'10' });
   });
   socket.on('disconnect', function(){
     sub.quit();

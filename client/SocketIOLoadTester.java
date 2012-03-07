@@ -138,7 +138,8 @@ public class SocketIOLoadTester extends Thread implements SocketIOClientEventLis
     
     this.testRunning = true;
     
-    // TODO Think about having this vary as an initial condition thing - for lower concurrencies, starting at 1 costs us a lot fo time to run the test.
+    // TODO Think about having this vary as an initial condition thing 
+    // - for lower concurrencies, starting at 1 costs us a lot fo time to run the test.
     this.currentMessagesPerSecond = STARTING_MESSAGES_PER_SECOND_RATE;
     double effectiveRate = 0;
     double overallEffectiveRate = 0;

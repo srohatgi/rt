@@ -1,0 +1,18 @@
+div(data-role='page')
+  div(data-role='header', data-position='fixed')
+    h3 YouSendIt Activity Feed
+  div.main#feeds
+    ul#feedlist(data-role='listview',data-theme='g')
+      
+script(type='text/javascript')
+  var user = prompt('enter your name:');
+  var socket = io.connect('/?user='+user);
+  
+  socket.on('connect', function() {
+    socket.emit('add_device',user);
+  });
+  
+  socket.on('newfeed', function(payload) {
+    $('#feedlist').prepend('<li>unread items:'+payload.items+' change id:'+payload.chg_id+'</li>');
+    $('#feedlist').listview('refresh');
+  });

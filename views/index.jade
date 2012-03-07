@@ -22,7 +22,16 @@ div(data-role='page')
     ul#devices(data-role='listview',data-theme='b',data-inset="true")
 
 script(type='text/javascript')
-  var user = prompt("Please enter user name:");
+  var user = null, store = null;
+  if ( localStorage in window && window['localStorage'] !== null ) {
+    store = window.localStorage;
+    user = store.getItem('user');    
+  }
+  if ( user === null ) {
+    user = prompt('Please enter user name:');
+    if ( store ) store.setItem('user',user);
+  }
+    
   var socket = io.connect('/?user='+user);
 
   var chg_main_area = function(what) {
