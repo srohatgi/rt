@@ -45,7 +45,7 @@ Components
 
 Env Configuration
 -----------------
-* Load Balancer for PUSH servers
+* LOAD BALANCER: performs ssl termination and proxies http 1.1/ TCP traffic
 * PUSH: Node.js/ Socket.IO servers machine
 * CLIENT: java client machine
 * PUBLISHER: Node.js machine
