@@ -35,7 +35,7 @@ Stress Test
 ===========
 The test aims to discover a maximum number of clients that can be subscribed to a PUSH server (at a given hardware configuration). 
 
-A way to measure this is to track the latency between when a message is created by the PUBLISH server to when it is __actually__ received by the client. As more active subscriber clients to the mix, we expect this latency to increase, till it becomes intolerable. The number of active clients connected at that time is our maximum. Of course, not every client needs to be active - meaning they do not need to be receiving messages. In that case, we have a `PERCENT_COLLAB` factor which can now be used to find a maximum client number based on a realistic concurrent active clients vs simple clients.
+A way to measure this is to track the latency between when a message is created by the PUBLISH server to when it is __actually__ received by the client. As more active subscriber clients to the mix, we expect this latency to increase, till it becomes intolerable. The number of active clients connected at that time is our maximum. Of course, not every client needs to be active - meaning they do not need to be receiving messages. In that case, we have a `PERCENT_COLLAB` factor which can be used (in the `PUBLISHER` & `PUSH` servers) to find a maximum client number based on a realistic mix of active clients vs clients that are just listeners.
 
 More specific details of the test follow below:
 
