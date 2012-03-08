@@ -47,8 +47,8 @@ More specific details of the test follow below:
     1. `Latency = ReceivedTs - ServerTs`
     1. `TOLERANCE = <client program input>`
 1. For each given `concurrency` in `[1, 10, 100, 1000, 10000, 100000, 1000000 ]`
-    1. Find `MedianLatency[concurrency]`
-    1. `if Median Latency[concurrency] > TOLERANCE then stop the test and publish the concurrency#`
+    1. Find `Median(Latency[concurrency])`
+    1. `if Median(Latency[concurrency]) > TOLERANCE then stop the test and publish the concurrency#`
     
 ----
 Status
