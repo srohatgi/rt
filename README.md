@@ -31,6 +31,25 @@ Design
 1. `Client` is a multi threaded Java program
 1. `DeviceDB` & `PublishDB` are Redis database servers
 
+Stress Test
+===========
+The test aims to discover a maximum number of clients that can be subscribed to a PUSH server (at a given hardware configuration). 
+
+A way to measure this is to track the latency between when a message is created by the PUBLISH server to when it is __actually__ received by the client. As more active subscriber clients to the mix, we expect this latency to increase, till it becomes intolerable. The number of active clients connected at that time is our maximum. Of course, not every client needs to be active - meaning they do not need to be receiving messages. In that case, we have a `PERCENT_COLLAB` factor which can now be used to find a maximum client number based on a realistic concurrent active clients vs simple clients.
+
+More specific details of the test follow below:
+
+1. Push server sends out payload 
+    1. `payload = {chg_id: <id of last known read item>, items: <unread items>, publish_ts: <timestamp> }`
+1. Client monitors message latency  to `payload.publish_ts` 
+    1. ReceivedTs = `Calendar.getInstance().getTimeInMillis()`
+    1. ServerTs = `payload.publish_ts`
+    1. Latency = ReceivedTs - ServerTs
+    1. IntolerableLatency = <client program input>
+1. For each given `concurrency` in `[1, 10, 100, 1000, 10000, 100000, 1000000 ]`
+    1. Find Median Latency[concurrency]
+    1. Once Median Latency[concurrency] becomes larger than TOLERANCE, stop the test and publish the results
+    
 ----
 Status
 ======
