@@ -56,6 +56,8 @@ public class SocketIOClient extends WebSocketClient {
       String lastPart = messageParts[messageParts.length-1];
       String chatPayload = lastPart.substring(1, lastPart.length()-4);
       
+      System.out.println("message="+message+" chat payload="+chatPayload);
+      
       long roundtripTime;
       String[] payloadParts = chatPayload.split(",");
       if(new Integer(this.id).toString().compareTo(payloadParts[0])==0) {

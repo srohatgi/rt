@@ -76,7 +76,7 @@ io.sockets.on('connection', function (socket) {
   });
   sub.on('message', function(channel, message) {
     console.log(channel+':recieved:'+message);
-    socket.emit('newfeed',{ 'items':message, chg_id:'10' });
+    socket.emit('newfeed',JSON.parse(message));
   });
   socket.on('disconnect', function(){
     sub.quit();
