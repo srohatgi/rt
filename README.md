@@ -39,9 +39,9 @@ A way to measure this is to track the latency between when a message is created 
 
 More specific details of the test follow below:
 
-1. Push server sends out payload 
+1. Push server sends out message payload 
     1. `payload = {chg_id: <id of last known read item>, items: <unread items>, publish_ts: <timestamp> }`
-1. Client monitors message latency  to `payload.publish_ts` 
+1. Client monitors __message latency__ 
     1. `ReceivedTs = Calendar.getInstance().getTimeInMillis()`
     1. `ServerTs = payload.publish_ts`
     1. `Latency = ReceivedTs - ServerTs`
