@@ -41,12 +41,12 @@ function spawn_datastore(rundir,publish_addr,device_addr,redis_conf_loc,start_sc
   
   if ( publish_addr !== device_addr ) {
     port = device_addr.substring(device_addr.indexOf(':')+1);
-    var devicedb_conf = rundir+'/publishdb.conf';
-    var devicedb_pid = rundir+'/publishdb.pid';
+    var devicedb_conf = rundir+'/devicedb.conf';
+    var devicedb_pid = rundir+'/devicedb.pid';
     util.puts(util.format('sed -e "s#pidfile /var/run/redis.pid#pidfile %s#g" -e "s/6379/%s/g" -e "s#dir \./#dir %s#g" -e "s/daemonize no/daemonize yes/g" -e "s#logfile stdout#logfile %s/publishdb.log#g" %s > %s'
                 ,devicedb_pid,port,rundir,rundir,redis_conf_loc,devicedb_conf));
     util.puts(util.format('echo redis-server %s >> %s',devicedb_conf,start_script));
-    util.puts(util.format('echo kill -9 \`cat %s\` >> %s',devicedb_pid,stop_script));
+    util.puts(util.format('echo kill -9 \\`cat %s\\` >> %s',devicedb_pid,stop_script));
   }
 }
 
@@ -54,7 +54,7 @@ function spawn_push(script,rundir,children,port_range,forever_exe,publish_addr,d
   for (var i=0;i<children;i++) {
     var port = parseInt(port_range) + parseInt(i);
     var env_vars = 'PUBLISH_DB='+publish_addr+' DEVICE_DB='+device_addr+' PERCENT_COLLAB='+percent_collab+' PUSH_PORT='+port;
-    var forever_opts = ' start -l '+rundir+'/forever_push.log -o '+rundir+'/push_out.log -e '+rundir+'/push_err.log ';
+    var forever_opts = ' start --logFile '+rundir+'/forever_push.log --outFile '+rundir+'/push_out.log --errFile '+rundir+'/push_err.log ';
     var cmd_line = env_vars+' '+forever_exe+forever_opts+script;
     util.puts(util.format('echo %s >> %s',cmd_line,start_script));
     util.puts(util.format('echo %s stop %s >> %s',forever_exe,script,stop_script));
@@ -63,7 +63,7 @@ function spawn_push(script,rundir,children,port_range,forever_exe,publish_addr,d
 
 function trigger_publisher(script,rundir,forever_exe,publish_addr,interval,start_script,stop_script) {
   env_vars = 'PUBLISH_DB='+publish_addr+' PUBLISH_INTERVAL_SECS='+interval+' PERCENT_COLLAB='+percent_collab;
-  var forever_opts = ' start -l '+rundir+'/forever_publish.log -o '+rundir+'/publish_out.log -e '+rundir+'/publish_err.log ';
+  var forever_opts = ' start --logFile '+rundir+'/forever_publish.log --outFile '+rundir+'/publish_out.log --errFile '+rundir+'/publish_err.log ';
   cmd_line = env_vars+' '+forever_exe+forever_opts+script;
   util.puts(util.format('echo %s >> %s',cmd_line,start_script));
   util.puts(util.format('echo %s stop %s >> %s',forever_exe,script,stop_script));

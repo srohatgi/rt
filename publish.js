@@ -19,8 +19,8 @@ var Publish = function(publish_db) {
 
 exports.Publish = Publish;
 
+var publisher = Publish(process.env.PUBLISH_DB);
 setInterval(function() {
-  var publisher = Publish(process.env.PUBLISH_DB);
   publisher.publishFeed(process.env.PERCENT_COLLAB,'5');
-  publisher.quit();
 }, parseInt(process.env.PUBLISH_INTERVAL_SECS)*1000);
+//publisher.quit();
