@@ -72,5 +72,5 @@ Env Configuration
 
 Testing
 -------
-* Unit testing is `WIP`
-* Perf testing is yet to started 
+* Unit testing is `Done`
+* Performance testing is `WIP` 
