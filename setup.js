@@ -5,6 +5,7 @@ var util = require('util'),
 
 // server config
 var push_js = path.join(__dirname, 'push.js'),
+    rundir = process.env.RUNDIR || path.join(__dirname,'logs'),
     publish_db = process.env.PUBLISH_DB || 'localhost:6379',
     device_db = process.env.DEVICE_DB || 'localhost:6379',
     percent_collab = process.env.PERCENT_COLLAB || '30',
@@ -17,49 +18,61 @@ var push_js = path.join(__dirname, 'push.js'),
 var forever_exe = path.join(__dirname, '/node_modules/forever/bin/forever')
 var publish_js = path.join(__dirname, 'publish.js');
 var publish_interval = process.env.PUBLISH_INTERVAL_SECS || '2';
+var start_script = rundir+'/start.sh';
+var stop_script = rundir+'/stop.sh';
 
 // datastore - redis start
-spawn_datastore(publish_db,device_db,redis_conf_loc);
+spawn_datastore(rundir,publish_db,device_db,redis_conf_loc,start_script,stop_script);
 // push - node.js start
-spawn_push(push_js,push_children,push_port_range,forever_exe,publish_db,device_db,percent_collab);
+spawn_push(push_js,rundir,push_children,push_port_range,forever_exe,publish_db,device_db,percent_collab,start_script,stop_script);
 // publish - node.js script
-trigger_publisher(publish_js,forever_exe,publish_db,publish_interval);
+trigger_publisher(publish_js,rundir,forever_exe,publish_db,publish_interval,start_script,stop_script);
 // client - java program
-trigger_client();
+trigger_client(rundir,start_script,stop_script);
 
-function spawn_datastore(publish_addr,device_addr,redis_conf_loc) {
+function spawn_datastore(rundir,publish_addr,device_addr,redis_conf_loc,start_script,stop_script) {
   var port = publish_addr.substring(publish_addr.indexOf(':')+1);
-  util.puts('redis-server - <<!');
-  util.puts('`sed "s/6379/'+port+'/g" '+redis_conf_loc+'`');
-  util.puts('!');
+  var publishdb_conf = rundir+'/publishdb.conf';
+  var publishdb_pid = rundir+'/publishdb.pid';
+  util.puts(util.format('sed -e "s#pidfile /var/run/redis.pid#pidfile %s#g" -e "s/6379/%s/g" -e "s#dir \./#dir %s#g" -e "s/daemonize no/daemonize yes/g" -e "s#logfile stdout#logfile %s/publishdb.log#g" %s > %s'
+              ,publishdb_pid,port,rundir,rundir,redis_conf_loc,publishdb_conf));
+  util.puts(util.format('echo redis-server %s >> %s',publishdb_conf,start_script));
+  util.puts(util.format('echo kill -9 \\`cat %s\\` >> %s',publishdb_pid,stop_script));
   
   if ( publish_addr !== device_addr ) {
     port = device_addr.substring(device_addr.indexOf(':')+1);
-    util.puts('redis-server - <<!');
-    util.puts('`sed "s/6379/'+port+'/g" '+redis_conf_loc+'`')
-    util.puts('!');
+    var devicedb_conf = rundir+'/publishdb.conf';
+    var devicedb_pid = rundir+'/publishdb.pid';
+    util.puts(util.format('sed -e "s#pidfile /var/run/redis.pid#pidfile %s#g" -e "s/6379/%s/g" -e "s#dir \./#dir %s#g" -e "s/daemonize no/daemonize yes/g" -e "s#logfile stdout#logfile %s/publishdb.log#g" %s > %s'
+                ,devicedb_pid,port,rundir,rundir,redis_conf_loc,devicedb_conf));
+    util.puts(util.format('echo redis-server %s >> %s',devicedb_conf,start_script));
+    util.puts(util.format('echo kill -9 \`cat %s\` >> %s',devicedb_pid,stop_script));
   }
 }
 
-function spawn_push(script,children,port_range,forever_exe,publish_addr,device_addr,percent_collab) {
+function spawn_push(script,rundir,children,port_range,forever_exe,publish_addr,device_addr,percent_collab,start_script,stop_script) {
   for (var i=0;i<children;i++) {
     var port = parseInt(port_range) + parseInt(i);
-    env_vars = 'PUBLISH_DB='+publish_addr+' DEVICE_DB='+device_addr+' PERCENT_COLLAB='+percent_collab+' PUSH_PORT='+port;
-    cmd_line = env_vars+' '+forever_exe+' '+script;
-    util.puts(cmd_line);
+    var env_vars = 'PUBLISH_DB='+publish_addr+' DEVICE_DB='+device_addr+' PERCENT_COLLAB='+percent_collab+' PUSH_PORT='+port;
+    var forever_opts = ' start -l '+rundir+'/forever_push.log -o '+rundir+'/push_out.log -e '+rundir+'/push_err.log ';
+    var cmd_line = env_vars+' '+forever_exe+forever_opts+script;
+    util.puts(util.format('echo %s >> %s',cmd_line,start_script));
+    util.puts(util.format('echo %s stop %s >> %s',forever_exe,script,stop_script));
   }
 }
 
-function trigger_publisher(script,forever_exe,publish_addr,interval) {
+function trigger_publisher(script,rundir,forever_exe,publish_addr,interval,start_script,stop_script) {
   env_vars = 'PUBLISH_DB='+publish_addr+' PUBLISH_INTERVAL_SECS='+interval+' PERCENT_COLLAB='+percent_collab;
-  cmd_line = env_vars+' '+forever_exe+' '+script;
-  util.puts(cmd_line);
+  var forever_opts = ' start -l '+rundir+'/forever_publish.log -o '+rundir+'/publish_out.log -e '+rundir+'/publish_err.log ';
+  cmd_line = env_vars+' '+forever_exe+forever_opts+script;
+  util.puts(util.format('echo %s >> %s',cmd_line,start_script));
+  util.puts(util.format('echo %s stop %s >> %s',forever_exe,script,stop_script));
 }
 
-function trigger_client() {
+function trigger_client(rundir,start_script,stop_script) {
   var ws_jar = path.join(__dirname, 'client/lib/WebSocket.jar');
   var cm_jar = path.join(__dirname, 'client/lib/commons-math-2.2.jar');
   var cp = path.join(__dirname, 'client/classes');
-  cmd_line = 'PUSH_CLUSTER_URI='+push_cluster_uri+' java -cp '+[ws_jar,cm_jar,cp].join(':')+' SocketIOLoadTester';
-  util.puts(cmd_line);
+  cmd_line = 'echo PUSH_CLUSTER_URI='+push_cluster_uri+' java -cp '+[ws_jar,cm_jar,cp].join(':')+' SocketIOLoadTester';
+  util.puts(util.format('echo %s >> %s',cmd_line,start_script));
 }
