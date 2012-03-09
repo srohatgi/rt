@@ -57,9 +57,9 @@ function parse_port_host(name) {
 
 var pair = parse_port_host(process.env.PUBLISH_DB);
 
+// register with PUBLISH DB
+var sub = redis.createClient(pair.port,pair.host);
 io.sockets.on('connection', function (socket) {
-  // register with PUBLISH DB
-  var sub = redis.createClient(pair.port,pair.host);
   // generate random number...
   var r = Math.floor(Math.random()*101);
   if ( r <= process.env.PERCENT_COLLAB || socket.handshake['user'] === 'lucky' ) { 
