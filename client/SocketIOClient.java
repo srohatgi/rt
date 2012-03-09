@@ -12,6 +12,54 @@ import java.util.Map;
 import org.java_websocket.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
+import com.google.gson.Gson;
+
+/* {"name":"newfeed","args":["{\"chg_id\":1331220941674,\"items\":\"5\"}"]} */
+
+class Feed {
+  long chg_id;
+  long publish_ts;
+  String items;
+
+  public Feed() { }
+
+  public Feed(long chg_id,long publish_ts,String items) {
+    this.chg_id = chg_id;
+    this.publish_ts = publish_ts;
+    this.items = items;
+  }
+}
+
+class Event {
+  String name;
+  Feed[] args;
+
+  public Event() {
+  }
+
+  public Event(String name,Feed[] bb) {
+    this.name = name;
+    this.args = bb;
+  }
+
+  public static Event parseSocketIOEvent(String eventStr) {
+    Gson g = new Gson();
+    return g.fromJson(eventStr,Event.class);
+  }
+  
+  public static void main(String[] args) {
+    Feed[] bb = new Feed[1];
+    bb[0] = new Feed(12321,12321,"5");
+    Event aa = new Event("newfeed",bb);
+
+    Gson gson = new Gson();
+    String json = gson.toJson(aa);
+
+    System.out.println("json="+json);
+  }
+}
+    
+
 
 public class SocketIOClient extends WebSocketClient {
   
@@ -45,12 +93,20 @@ public class SocketIOClient extends WebSocketClient {
   @Override
   public void onMessage(String message) {
     long messageArrivedAt = Calendar.getInstance().getTimeInMillis();
+    Event e;
     
     switch(message.toCharArray()[0]) {
     case '2':
       this.heartbeat();
       break;
     case '5':
+      e = Event.parseSocketIOEvent(message.substring(4));
+      long roundtripTime = messageArrivedAt - e.args[0].publish_ts;
+      System.out.println("messageArrivedAt:"+messageArrivedAt+" publish_ts:"+e.args[0].publish_ts);
+      this.listener.messageArrivedWithRoundtrip(roundtripTime);
+      this.listener.onMessage(e.args[0].items);
+
+      /* leave the hacks out
       // We want to extract the actual message. Going to hack this shit.
       String[] messageParts = message.split(":");
       String lastPart = messageParts[messageParts.length-1];
@@ -66,6 +122,7 @@ public class SocketIOClient extends WebSocketClient {
       }
 
       this.listener.onMessage(chatPayload);
+      */
 
       break;
     }
@@ -85,12 +142,12 @@ public class SocketIOClient extends WebSocketClient {
   }
   
   public void chat(String message) {
-    try {
+    /*try {
       String fullMessage = "5:::{\"name\":\"chat\", \"args\":[{\"text\":\""+message+"\"}]}";
-      this.send(fullMessage);
+      //this.send(fullMessage);
     } catch (InterruptedException i) {
       i.printStackTrace();
-    }
+    }*/
   }
   
   public void sendTimestampedChat() {
