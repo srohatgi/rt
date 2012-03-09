@@ -72,7 +72,9 @@ function trigger_publisher(script,rundir,forever_exe,publish_addr,interval,start
 function trigger_client(rundir,start_script,stop_script) {
   var ws_jar = path.join(__dirname, 'client/lib/WebSocket.jar');
   var cm_jar = path.join(__dirname, 'client/lib/commons-math-2.2.jar');
+  var json_jar = path.join(__dirname, 'client/lib/gson-2.1.jar');
   var cp = path.join(__dirname, 'client/classes');
-  cmd_line = 'echo PUSH_CLUSTER_URI='+push_cluster_uri+' java -cp '+[ws_jar,cm_jar,cp].join(':')+' SocketIOLoadTester';
+  
+  cmd_line = 'echo PUSH_CLUSTER_URI='+push_cluster_uri+' java -cp '+[ws_jar,cm_jar,json_jar,cp].join(':')+' SocketIOLoadTester';
   util.puts(util.format('echo %s >> %s',cmd_line,start_script));
 }
