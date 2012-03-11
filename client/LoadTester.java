@@ -97,6 +97,7 @@ public class LoadTester extends Thread implements SocketIOClientEventListener {
       e.printStackTrace();
     }
     
+    System.out.println("closing main testing thread!");
     return;
   }
   

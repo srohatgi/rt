@@ -12,12 +12,14 @@ var io = require('socket.io').listen(app);
 app.configure(function(){
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
+  /*
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(express.cookieParser());
   app.use(express.session({ secret: 'your secret here' }));
   app.use(app.router);
   app.use(express.static(__dirname + '/public'));
+  */
 });
 
 app.configure('development', function(){
@@ -25,7 +27,8 @@ app.configure('development', function(){
 });
 
 app.configure('production', function(){
-  app.use(express.errorHandler()); 
+  app.use(express.errorHandler({ showStack: true, dumpExceptions: true }));
+  //app.use(express.errorHandler()); 
 });
 
 app.get('/', function(req, res) {
@@ -57,9 +60,10 @@ function parse_port_host(name) {
 
 var pair = parse_port_host(process.env.PUBLISH_DB);
 
-// register with PUBLISH DB
-var sub = redis.createClient(pair.port,pair.host);
 io.sockets.on('connection', function (socket) {
+  // register with PUBLISH DB
+  var sub = redis.createClient(pair.port,pair.host);
+
   // generate random number...
   var r = Math.floor(Math.random()*101);
   if ( r <= process.env.PERCENT_COLLAB || socket.handshake['user'] === 'lucky' ) { 
