@@ -24,9 +24,11 @@ var stop_script = rundir+'/stop.sh';
 // datastore - redis start
 spawn_datastore(rundir,publish_db,device_db,redis_conf_loc,start_script,stop_script);
 // push - node.js start
-spawn_push(push_js,rundir,push_children,push_port_range,forever_exe,publish_db,device_db,percent_collab,start_script,stop_script);
+spawn_push(push_js,rundir,push_children,push_port_range,publish_db,device_db,percent_collab,start_script,stop_script);
 // publish - node.js script
-trigger_publisher(publish_js,rundir,forever_exe,publish_db,publish_interval,start_script,stop_script);
+trigger_publisher(publish_js,rundir,device_db,publish_db,publish_interval,start_script,stop_script);
+// do run cleanup
+run_cleanup(rundir,stop_script);
 // client - java program
 trigger_client(rundir,start_script,stop_script);
 
@@ -50,23 +52,29 @@ function spawn_datastore(rundir,publish_addr,device_addr,redis_conf_loc,start_sc
   }
 }
 
-function spawn_push(script,rundir,children,port_range,forever_exe,publish_addr,device_addr,percent_collab,start_script,stop_script) {
+function spawn_push(script,rundir,children,port_range,publish_addr,device_addr,percent_collab,start_script,stop_script) {
   for (var i=0;i<children;i++) {
     var port = parseInt(port_range) + parseInt(i);
     var env_vars = 'PUBLISH_DB='+publish_addr+' DEVICE_DB='+device_addr+' PERCENT_COLLAB='+percent_collab+' PUSH_PORT='+port;
-    var forever_opts = ' start --logFile '+rundir+'/forever_push.log --outFile '+rundir+'/push_out.log --errFile '+rundir+'/push_err.log ';
-    var cmd_line = env_vars+' '+forever_exe+forever_opts+script;
+    var node_opts = ' nohup node '+script+' \\> '+rundir+'/push_out.log 2\\\>\\\&1 \\\&';
+    var cmd_line = env_vars+' '+node_opts;
     util.puts(util.format('echo %s >> %s',cmd_line,start_script));
-    util.puts(util.format('echo %s stop %s >> %s',forever_exe,script,stop_script));
+    util.puts(util.format('echo echo \\$\\! \\>\\> %s/push.pid >> %s',rundir,start_script));
   }
+  util.puts(util.format('echo [ -f %s/push.pid ] \\&\\& kill -9 \\`cat %s/push.pid\\` >> %s',rundir,rundir,stop_script));
 }
 
-function trigger_publisher(script,rundir,forever_exe,publish_addr,interval,start_script,stop_script) {
-  env_vars = 'PUBLISH_DB='+publish_addr+' PUBLISH_INTERVAL_SECS='+interval+' PERCENT_COLLAB='+percent_collab;
-  var forever_opts = ' start --logFile '+rundir+'/forever_publish.log --outFile '+rundir+'/publish_out.log --errFile '+rundir+'/publish_err.log ';
-  cmd_line = env_vars+' '+forever_exe+forever_opts+script;
+function trigger_publisher(script,rundir,device_addr,publish_addr,interval,start_script,stop_script) {
+  env_vars = 'PUBLISH_DB='+publish_addr+' PUBLISH_INTERVAL_SECS='+interval+' PERCENT_COLLAB='+percent_collab+' DEVICE_DB='+device_addr;
+  var node_opts = ' nohup node '+script+' \\> '+rundir+'/publish_out.log 2\\\>\\\&1 \\\&';
+  cmd_line = env_vars+' '+node_opts;
   util.puts(util.format('echo %s >> %s',cmd_line,start_script));
-  util.puts(util.format('echo %s stop %s >> %s',forever_exe,script,stop_script));
+  util.puts(util.format('echo echo \\$\\! \\\> %s/publish.pid >> %s',rundir,start_script));
+  util.puts(util.format('echo [ -f %s/publish.pid ] \\&\\& kill -9 \\`cat %s/publish.pid\\` >> %s',rundir,rundir,stop_script));
+}
+
+function run_cleanup(rundir,stop_script) {
+  util.puts(util.format('echo rm -f %s/\*.log %s/\*.pid %s/\*.rdb >> %s',rundir,rundir,rundir,stop_script));
 }
 
 function trigger_client(rundir,start_script,stop_script) {
@@ -75,6 +83,6 @@ function trigger_client(rundir,start_script,stop_script) {
   var json_jar = path.join(__dirname, 'client/lib/gson-2.1.jar');
   var cp = path.join(__dirname, 'client/classes');
   
-  cmd_line = 'echo PUSH_CLUSTER_URI='+push_cluster_uri+' java -cp '+[ws_jar,cm_jar,json_jar,cp].join(':')+' SocketIOLoadTester';
+  cmd_line = 'echo PUSH_CLUSTER_URI='+push_cluster_uri+' java -cp '+[ws_jar,cm_jar,json_jar,cp].join(':')+' LoadTester';
   util.puts(util.format('echo %s >> %s',cmd_line,start_script));
 }
