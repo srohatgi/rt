@@ -20,6 +20,7 @@ var publish_js = path.join(__dirname, 'publish.js');
 var publish_interval = process.env.PUBLISH_INTERVAL_SECS || '2';
 var start_script = rundir+'/start.sh';
 var stop_script = rundir+'/stop.sh';
+var client_script = rundir+'/cli.sh';
 
 // datastore - redis start
 spawn_datastore(rundir,publish_db,device_db,redis_conf_loc,start_script,stop_script);
@@ -30,7 +31,7 @@ trigger_publisher(publish_js,rundir,device_db,publish_db,publish_interval,start_
 // do run cleanup
 run_cleanup(rundir,stop_script);
 // client - java program
-trigger_client(rundir,start_script,stop_script);
+trigger_client(rundir,client_script);
 
 function spawn_datastore(rundir,publish_addr,device_addr,redis_conf_loc,start_script,stop_script) {
   var port = publish_addr.substring(publish_addr.indexOf(':')+1);
@@ -77,12 +78,12 @@ function run_cleanup(rundir,stop_script) {
   util.puts(util.format('echo rm -f %s/\*.log %s/\*.pid %s/\*.rdb >> %s',rundir,rundir,rundir,stop_script));
 }
 
-function trigger_client(rundir,start_script,stop_script) {
+function trigger_client(rundir,client_script) {
   var ws_jar = path.join(__dirname, 'client/lib/WebSocket.jar');
   var cm_jar = path.join(__dirname, 'client/lib/commons-math-2.2.jar');
   var json_jar = path.join(__dirname, 'client/lib/gson-2.1.jar');
   var cp = path.join(__dirname, 'client/classes');
   
-  cmd_line = 'echo PUSH_CLUSTER_URI='+push_cluster_uri+' java -cp '+[ws_jar,cm_jar,json_jar,cp].join(':')+' LoadTester';
-  util.puts(util.format('echo %s >> %s',cmd_line,start_script));
+  cmd_line = 'PUSH_CLUSTER_URI='+push_cluster_uri+' java -cp '+[ws_jar,cm_jar,json_jar,cp].join(':')+' LoadTester \\$*';
+  util.puts(util.format('echo %s >> %s',cmd_line,client_script));
 }
