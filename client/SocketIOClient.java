@@ -62,21 +62,15 @@ class Event {
 
 
 public class SocketIOClient extends WebSocketClient {
-  
   protected SocketIOClientEventListener listener;
   protected Map<String, Long> requests = new HashMap<String, Long>();
-  
   protected static int nextId = 0;
-  
   protected int id;
-  
   
   public SocketIOClient(URI server, SocketIOClientEventListener listener) {
     super(server);
-    
     this.listener = listener;
     id = nextId;
-    
     nextId++;
   }
 
@@ -106,25 +100,6 @@ public class SocketIOClient extends WebSocketClient {
       System.out.println("messageArrivedAt:"+messageArrivedAt+" publish_ts:"+e.args[0].publish_ts);
       this.listener.messageArrivedWithRoundtrip(roundtripTime);
       this.listener.onMessage(e.args[0].items);
-
-      /* leave the hacks out
-      // We want to extract the actual message. Going to hack this shit.
-      String[] messageParts = message.split(":");
-      String lastPart = messageParts[messageParts.length-1];
-      String chatPayload = lastPart.substring(1, lastPart.length()-4);
-      
-      System.out.println("message="+message+" chat payload="+chatPayload);
-      
-      long roundtripTime;
-      String[] payloadParts = chatPayload.split(",");
-      if(new Integer(this.id).toString().compareTo(payloadParts[0])==0) {
-        roundtripTime = messageArrivedAt - new Long(payloadParts[1]);
-        this.listener.messageArrivedWithRoundtrip(roundtripTime);
-      }
-
-      this.listener.onMessage(chatPayload);
-      */
-
       break;
     }
   }
@@ -141,29 +116,7 @@ public class SocketIOClient extends WebSocketClient {
       i.printStackTrace();
     }
   }
-  
-  public void chat(String message) {
-    /*try {
-      String fullMessage = "5:::{\"name\":\"chat\", \"args\":[{\"text\":\""+message+"\"}]}";
-      //this.send(fullMessage);
-    } catch (InterruptedException i) {
-      i.printStackTrace();
-    }*/
-  }
-  
-  public void sendTimestampedChat() {
-    String message = this.id + "," + new Long(Calendar.getInstance().getTimeInMillis()).toString();
-    this.chat(message);
-  }
-  
-  public void hello() {
-    try {
-      this.send("5:::{\"name\":\"hello\", \"args\":[]}");
-    } catch (InterruptedException i) {
-      i.printStackTrace();
-    }
-  }
-
+ 
   public static URI getNewSocketURI(String server) {
     try {
       URL url = new URL("http://" + server + "/socket.io/1/"); 
@@ -179,7 +132,10 @@ public class SocketIOClient extends WebSocketClient {
       BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
       String line = rd.readLine();
       String hskey = line.split(":")[0];
-      return new URI("ws://" + server + "/socket.io/1/websocket/" + hskey);
+      System.out.println("Getting Websocket Params:["+line+"]");
+      String uri = "ws://" + server + "/socket.io/1/websocket/" + hskey;
+      System.out.println("WebsocketURI="+uri);
+      return new URI(uri);
     } catch (Exception e) {
       System.out.println("error: " + e);
       return null;
