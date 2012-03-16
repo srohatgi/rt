@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.java_websocket.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.java_websocket.framing.CloseFrame;
 
 import com.google.gson.Gson;
 
@@ -76,13 +77,16 @@ public class SocketIOClient extends WebSocketClient {
 
   @Override
   public void onClose(int code, String reason, boolean remote) {
-    System.out.println("closing client!");
+    String scode = Integer.toString(code);
+    if ( code == CloseFrame.BUGGYCLOSE ) scode = "BUGGYCLOSE("+code+")";
+    
+    System.out.println("closing client! code:"+scode+" reason:"+reason+" remote:"+remote);
     this.listener.onClose();
   }
 
   @Override
   public void onError(Exception arg0) {
-    System.out.println("error: " + arg0);
+    System.out.println("runtime error (bug): " + arg0);
   }
 
   @Override
