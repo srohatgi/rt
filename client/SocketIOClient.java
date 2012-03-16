@@ -81,12 +81,13 @@ public class SocketIOClient extends WebSocketClient {
     if ( code == CloseFrame.BUGGYCLOSE ) scode = "BUGGYCLOSE("+code+")";
     
     System.out.println("closing client! code:"+scode+" reason:"+reason+" remote:"+remote);
-    this.listener.onClose();
+    this.listener.onClose(true);
   }
 
   @Override
   public void onError(Exception arg0) {
     System.out.println("runtime error (bug): " + arg0);
+    this.listener.onClose(true);
   }
 
   @Override
@@ -103,7 +104,7 @@ public class SocketIOClient extends WebSocketClient {
       long roundtripTime = messageArrivedAt - e.args[0].publish_ts;
       System.out.println("messageArrivedAt:"+messageArrivedAt+" publish_ts:"+e.args[0].publish_ts);
       this.listener.messageArrivedWithRoundtrip(roundtripTime);
-      this.listener.onMessage(e.args[0].items);
+      //this.listener.onMessage(e.args[0].items);
       break;
     }
   }
@@ -136,7 +137,7 @@ public class SocketIOClient extends WebSocketClient {
       BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
       String line = rd.readLine();
       String hskey = line.split(":")[0];
-      System.out.println("Getting Websocket Params:["+line+"]");
+      //System.out.println("Getting Websocket Params:["+line+"]");
       String uri = "ws://" + server + "/socket.io/1/websocket/" + hskey;
       System.out.println("WebsocketURI="+uri);
       return new URI(uri);

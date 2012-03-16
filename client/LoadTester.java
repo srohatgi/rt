@@ -30,7 +30,7 @@ public class LoadTester extends Thread implements SocketIOClientEventListener {
 
   private boolean testRunning;
   
-  protected LoadTester(ArrayList<Integer> concurrencies) {
+  protected LoadTester(List<Integer> concurrencies) {
     if(concurrencies.size() > 0) {
       System.out.print("Using custom concurrency levels: ");
       this.concurrencyLevels = new int[concurrencies.size()];
@@ -44,12 +44,12 @@ public class LoadTester extends Thread implements SocketIOClientEventListener {
     }
   }
   
-  public synchronized void run() {
-    
+  public synchronized void run() {    
     // open result file
     BufferedWriter f = null;
     try {
-        f =  new BufferedWriter(new FileWriter(System.currentTimeMillis() + ".log"));
+      f =  new BufferedWriter(new FileWriter(System.currentTimeMillis() + ".log"));
+      f.write("CONCURRENCY,MESSAGES,MIN_LATENCY,MEAN_LATENCY,MAX_LATENCY,STD_DEV_LATENCY\n");
     } catch (FileNotFoundException e) {
       e.printStackTrace();
     } catch (IOException e) {
@@ -62,10 +62,10 @@ public class LoadTester extends Thread implements SocketIOClientEventListener {
       // Reset the failure switches.
       this.lostConnection = false;
       System.out.println("---------------- CONCURRENCY " + this.concurrency + " ----------------");
-      // This won't return until we get an ACK on all the connections.
       this.numConnectionsMade = 0;
-      this.makeConnections(this.concurrency);
       this.roundtripTimes = new ArrayList<Long>();
+      
+      this.makeConnections(this.concurrency);
       
       Map<Integer, SummaryStatistics> summaryStats = this.performLoadTest();
       
@@ -80,9 +80,10 @@ public class LoadTester extends Thread implements SocketIOClientEventListener {
       }
             
       for(Integer  c : summaryStats.keySet()) {
-        SummaryStatistics stats = summaryStats.get(c);        
+        SummaryStatistics stats = summaryStats.get(c);
         try {
-          f.write(String.format("%d,%d,%f,%f,%f,%f\n", this.concurrency, stats.getN(), stats.getMin(), stats.getMean(), stats.getMax(), stats.getStandardDeviation()));
+          f.write(String.format("%d,%d,%f,%f,%f,%f\n",
+            this.concurrency, stats.getN(), stats.getMin(), stats.getMean(), stats.getMax(), stats.getStandardDeviation()));
           System.out.println("Wrote results of run to disk.");
         } catch (IOException e) {
           e.printStackTrace();
@@ -141,17 +142,17 @@ public class LoadTester extends Thread implements SocketIOClientEventListener {
     for(Long roundtripTime : this.roundtripTimes) {
       stats.addValue(roundtripTime);
     }    
-    System.out.format(" n: %5d min: %8.0f  mean: %8.0f   max: %8.0f   stdev: %8.0f\n", stats.getN(), stats.getMin(), stats.getMean(), stats.getMax(), stats.getStandardDeviation());    
+    System.out.format(" n: %5d e: %5d f: %5d min: %8.0f  mean: %8.0f   max: %8.0f   stdev: %8.0f\n", 
+      stats.getN(),(MESSAGES_RECEIVED_PER_CLIENT*this.concurrency),(concurrency-numConnectionsMade),
+      stats.getMin(), stats.getMean(), stats.getMax(), stats.getStandardDeviation());    
     return stats;
   }
   
   public static void main(String[] args) {
-    ArrayList<Integer> concurrencies = new ArrayList<Integer>();
-    // do we want to override concurrencyLevels?
+    List<Integer> concurrencies = new ArrayList<Integer>();
+
     if(args.length > 0) {
-      for(String arg : args) {
-        concurrencies.add(new Integer(arg));
-      }
+      for(String arg : args) concurrencies.add(new Integer(arg));
     }    
     LoadTester tester = new LoadTester(concurrencies);
     tester.start();
@@ -159,8 +160,9 @@ public class LoadTester extends Thread implements SocketIOClientEventListener {
 
   @Override
   public void onError(IOException e) {
-    // TODO Auto-generated method stub
-    
+    synchronized(this) {
+      System.out.println("recieved error:"+e);
+    }
   }
 
   @Override
@@ -171,11 +173,13 @@ public class LoadTester extends Thread implements SocketIOClientEventListener {
   
 
   @Override
-  public void onClose() {
-    if(this.testRunning) {
-      lostConnection = true;
-      System.out.println(" failed!");
-      System.out.println("Lost a connection. Shutting down.");
+  public void onClose(Boolean abnormal) {
+    synchronized(this) {
+      if( this.testRunning ) {
+        lostConnection = true;
+        System.out.println(abnormal?"Buggy WebSocket!":""+" failed! Lost a connection. Shutting it down.");
+        numConnectionsMade--;
+      }
     }
   }
 
@@ -197,8 +201,12 @@ public class LoadTester extends Thread implements SocketIOClientEventListener {
     synchronized(this) {
       if ( (messages_recieved_so_far++) >= (MESSAGES_RECEIVED_PER_CLIENT*this.concurrency) ) 
         this.notifyAll();
-      else
-        this.roundtripTimes.add(roundtripTime);
+      else {
+        if ( roundtripTimes == null ) {
+          System.out.println("how can this be??");
+        }
+        else this.roundtripTimes.add(roundtripTime);
+      }
     }
   }
 }
