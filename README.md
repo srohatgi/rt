@@ -59,7 +59,7 @@ Components
 * **Push server** is `Done`
 * **PublishDB** is `Done`
 * **DeviceDB** is `Done`
-* Client is `WIP`
+* **Client** is `Done`
 * **Publisher** is `Done`
 
 Env Configuration
@@ -73,4 +73,6 @@ Env Configuration
 Testing
 -------
 * Unit testing is `Done`
-* Performance testing is `WIP` 
+* Performance testing is `WIP`
+    * Able to sustain 1200 active device connections in MAC Book Pro (along with GUI, Client, Redis, Node.js)
+    * Able to sustain 3200 active device connections in a single core server machine (along with Redis, Node.js running on same machine)
