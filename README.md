@@ -49,7 +49,19 @@ More specific details of the test follow below:
 1. For each given `concurrency` in `[1, 10, 100, 1000, 10000, 100000, 1000000 ]`
     1. Find `Median(Latency[concurrency])`
     1. `if Median(Latency[concurrency]) > TOLERANCE then stop the test and publish the concurrency#`
-    
+
+Stress Testing settings for Linux
+=================================
+
+    # ulimit -n 65536
+    # ifconfig eth0 txqueuelen 8192 # replace eth0 with the ethernet interface you are using
+    # /sbin/sysctl -w net.core.somaxconn=4096
+    # /sbin/sysctl -w net.core.netdev_max_backlog=16384
+    # /sbin/sysctl -w net.core.rmem_max=16777216
+    # /sbin/sysctl -w net.core.wmem_max=16777216
+    # /sbin/sysctl -w net.ipv4.tcp_max_syn_backlog=8192
+    # /sbin/sysctl -w net.ipv4.tcp_syncookies=1
+
 ----
 Status
 ======
